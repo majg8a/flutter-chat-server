@@ -9,21 +9,28 @@ const app = uWS.App().ws("/*", {
   open: async (ws, req) => {},
 
   //onMessage
-  message: (ws, message, isBinary) => {
-    const json = JSON.parse(Buffer.from(message).toString("utf-8"));
-    const actions = {
-      ADD_USER: () => {
-        const userData = ws.getUserData();
-        userData.ws = ws;
-        users[new Date().valueOf()] = userData;
-      },
-      ADD_MESSAGE: () => {},
-    };
+  message: (ws, message) => {
+    try {
+      const string = Buffer.from(message).toString("utf-8");
+      const json = JSON.parse(string);
+      const actions = {
+        ADD_USER: () => {
+          const userData = ws.getUserData();
+          userData.ws = ws;
+          const id = new Date().valueOf();
+          users[id] = userData;
+          ws.send(id.toString());
+        },
+        ADD_MESSAGE: () => {},
+      };
 
-    
+      actions[json.action] ? actions[json.action]() : null;
+    } catch (error) {
+      console.log(error);
+    }
+
     // message = Buffer.from(message).toString("utf-8");
     // console.log(`recived: ${message}`);
-    ws.send();
   },
 });
 
